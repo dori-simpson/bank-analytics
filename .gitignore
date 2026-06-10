@@ -1,0 +1,7 @@
+# Ignore raw or generated dataset arrays
+attachments/*.csv
+
+# Ignore local python environment or cache files
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
