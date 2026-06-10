@@ -5,3 +5,10 @@ attachments/*.csv
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+# Ignore the virtual environment directory
+venv/
+.venv/
+
+# Ignore local Streamlit secrets and runtime configurations
+.streamlit/secrets.toml
+.streamlit/config.toml
