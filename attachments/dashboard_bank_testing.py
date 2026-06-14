@@ -14,7 +14,7 @@ st.markdown("""
     header { display: none !important; }
     [data-testid="stSidebar"] { display: none !important; }
     .stApp { background: #f0f2f5; }
-    iframe { width: 100% !important; min-width: 0 !important; }
+    iframe { width: 100% !important; min-width: 0 !important; height: 100vh !important; border: none; }
     section[data-testid="stMain"] > div { padding: 0 !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -366,43 +366,123 @@ html_code = """
   }
 
   /* ════════════════════════════════════════
-     RESPONSIVE BREAKPOINTS
+      RESPONSIVE BREAKPOINTS
   ════════════════════════════════════════ */
 
-  /* Tablet: collapse to single column */
+  /* Tablet/Smaller Desktop: Adjust fonts, layout slightly */
+  @media (max-width: 992px) {
+    .shell { padding: 10px; }
+    .header { padding: 12px 16px; margin-bottom: 12px; gap: 10px; }
+    .header-icon { width: 36px; height: 36px; font-size: 18px; }
+    .header-title { font-size: 15px; }
+    .header-sub   { font-size: 10px; }
+    .metric-strip { gap: 6px; margin-bottom: 12px; }
+    .metric-card { padding: 8px 4px; }
+    .metric-val  { font-size: clamp(13px, 2vw, 18px); }
+    .metric-lbl  { font-size: 8px; margin-top: 4px; }
+    .tabs { padding: 3px; margin-bottom: 12px; }
+    .tab { padding: 8px 10px; font-size: 11.5px; min-width: 90px; gap: 5px; }
+    .tab i { font-size: 14px; }
+    .two-col { gap: 12px; }
+    .card { padding: 14px 16px; }
+    .card + .card { margin-top: 12px; }
+    .card-title { font-size: 11px; margin-bottom: 12px; }
+    .param-grid { gap: 12px; margin-bottom: 14px; }
+    input[type="number"], select { padding: 8px 10px; font-size: 13px; }
+    .gauge-wrap { margin: 14px 0 10px; }
+    .result-box { padding: 18px; margin-top: 12px; }
+    .result-score { font-size: 44px; }
+    .result-decision { font-size: 12px; }
+    .result-prob { font-size: 11px; }
+    .tier-row { padding: 8px 0; font-size: 12px; }
+    .auc-val { width: 40px; font-size: 11px; }
+    .kv-row { padding: 8px 0; font-size: 12px; }
+    .note-box { font-size: 11px; }
+  }
+
+  /* Tablet: collapse grid columns where needed, manage visibility */
   @media (max-width: 768px) {
     .shell { padding: 12px; }
     .two-col { grid-template-columns: 1fr; }
-    .metric-strip { grid-template-columns: repeat(3, 1fr); }
+    
+    /* Modify metric strip to stack or hide carefully */
+    .metric-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .metric-strip .metric-card:nth-child(4),
     .metric-strip .metric-card:nth-child(5) { display: none; }
+    
+    /* Stricter visibility for header subtext */
     .header-sub { display: none; }
-    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    
+    /* Adjust summary grid on Score tab */
+    .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    
+    /* Ensure other cards take full width */
+    .card { width: 100%; max-width: 100%; margin-left: auto; margin-right: auto; }
   }
 
-  /* Mobile: full single column */
+  /* Mobile: manage overall padding, stacking, specific elements scaling */
   @media (max-width: 480px) {
     .shell { padding: 10px; }
-    .metric-strip { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    
+    /* Further simplify metric strip for very small screens */
+    .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .metric-strip .metric-card:nth-child(3),
     .metric-strip .metric-card:nth-child(4),
     .metric-strip .metric-card:nth-child(5) { display: none; }
+    
+    /* Final metric styling on mobile */
     .metric-val  { font-size: 18px; }
+    .metric-lbl { font-size: 9px; }
+    
+    /* Parameters stack vertically, and full width */
     .param-grid  { grid-template-columns: 1fr; }
-    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .param-field { width: 100%; max-width: 100%; }
+    
+    /* Gauge labels smaller for readability within limited width */
+    .gauge-labels { font-size: 8px; }
+    .gauge-labels span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+    .gauge-labels span:first-child { text-align: left; }
+    .gauge-labels span:last-child { text-align: right; }
+    
+    /* Result box smaller scaling */
     .result-score { font-size: 40px; }
+    .result-decision { font-size: 11.5px; }
+    .result-prob { font-size: 10.5px; }
+    
+    /* Risk factor list adjustments */
+    .flag-item { font-size: 12px; }
+    
+    /* Donut chart smaller */
+    .donut-wrap { height: 180px; }
+    
+    /* Smaller model bench markers */
     .model-name  { width: 110px; }
+    .auc-val { width: 36px; font-size: 10.5px; }
+    
+    /* Card internal spacing smaller */
     .card { padding: 14px; }
+    
+    /* Tabs scaling for small screens */
+    .tabs { padding: 2px; }
     .tab  { font-size: 11.5px; padding: 9px 10px; min-width: 80px; }
-    .header { padding: 12px 14px; }
+    
+    /* Header smaller scaling */
+    .header { padding: 12px 14px; margin-bottom: 10px; }
     .header-title { font-size: 14px; }
     .header-icon  { width: 34px; height: 34px; font-size: 17px; }
+    
+    /* Charts text slightly smaller legibility */
+    #barChart { font-size: 10px !important; }
   }
 
-  /* Very small screens */
+  /* Very small screens: manage tab details */
   @media (max-width: 360px) {
     .tab i { display: none; }
-    .tab   { min-width: 70px; }
+    .tab   { min-width: 70px; font-size: 11px; padding: 8px; }
+    .header { padding: 10px 12px; gap: 8px; }
+    .header-icon { width: 30px; height: 30px; font-size: 15px; }
+    .header-title { font-size: 13px; }
+    .gauge-labels { font-size: 7.5px; }
   }
 </style>
 </head>
@@ -622,7 +702,7 @@ html_code = """
         <div class="kv-row"><span class="kv-key">Total defaults</span>    <span class="kv-val">178 loans</span></div>
         <div class="kv-row"><span class="kv-key">Primary metric</span>    <span class="kv-val">ROC-AUC</span></div>
         <div class="kv-row"><span class="kv-key">Imbalance handling</span><span class="kv-val">Class weight balanced</span></div>
-        <div class="kv-row"><span class="kv-key">Explainability</span>    <span class="kv-val">SHAP LinearExplainer</span></div>
+        <div class="kv-row"><span class="kv-key">Explainability</span>    <span class="kv-val">SHAP TreeExplainer</span></div>
         <button class="cta-btn">Improve Model AUC ↗</button>
       </div>
     </div>
@@ -641,38 +721,12 @@ html_code = """
     };
   }
   const rng = seededRandom(42);
-  
-  // ── Unified Risk Engine (Fixes Data Leakage Issue) ──
-  function calculateRisk(rate, dti, delinq, grade, income) {
-      const rateRisk    = Math.min(40, (rate-5)/25*40);
-      const dtiRisk     = Math.min(30, dti/60*30);
-      const delinqRisk  = delinq * 20;
-      const gradeRisk   = (grade-1) * 15;
-      const incomeBonus = Math.min(20, (income/100000)*20);
-
-      // Calculates 0-1000 scale appropriately
-      let rawScore = 1000 - (rateRisk*2.5 + dtiRisk*3.5 + delinqRisk*5 + gradeRisk*4) + (incomeBonus*2);
-      let score = Math.max(0, Math.min(1000, Math.round(rawScore)));
-
-      // Maps score to an exponential curve to yield a realistic P(Default)
-      let pDefault = Math.min(0.98, Math.max(0.001, Math.exp(-score / 120)));
-
-      return { score, pDefault, rateRisk, dtiRisk, delinqRisk, gradeRisk, incomeBonus };
-  }
-
-  // ── Generates Portfolio ──
   const portfolioDatabase = [];
   for (let i = 0; i < 2000; i++) {
-    // Generates a prime-skewed healthy portfolio simulating a 1.78% actual default environment
-    const isPrime = rng() > 0.25; 
-    const r = isPrime ? (5 + rng()*6) : (11 + rng()*15);
-    const d = isPrime ? (rng()*20) : (20 + rng()*40);
-    const q = rng() > 0.95 ? Math.floor(1 + rng()*2) : 0; 
-    const g = isPrime ? (rng() > 0.4 ? 1 : 2) : Math.floor(3 + rng()*3);
-    const inc = isPrime ? (55000 + rng()*90000) : (35000 + rng()*45000);
-
-    const { score, pDefault } = calculateRisk(r, d, q, g, inc);
-    portfolioDatabase.push({ rate:r, dti:d, delinq:q, grade:g, income:inc, score, pDefault });
+    const r = 5 + rng()*25, d = rng()*60, q = rng()>0.8?Math.floor(rng()*3):0,
+          g = Math.floor(1+rng()*5), inc = 30000+rng()*120000;
+    const risk = Math.min(40,(r-5)/25*40)+Math.min(30,d/60*30)+(q*15)+((g-1)*8)-Math.min(15,(inc/100000)*15);
+    portfolioDatabase.push({ rate:r, dti:d, delinq:q, grade:g, income:inc, score:Math.round(1000*(1-Math.min(0.98,Math.max(0.01,risk/100)))) });
   }
 
   const GRADE_LABELS = ["","A — Prime","B — Near prime","C — Subprime","D — Elevated","E — High risk"];
@@ -734,25 +788,21 @@ html_code = """
     document.getElementById('dti-out').textContent    = dti + '%';
     document.getElementById('delinq-out').textContent = delinq;
 
-    // Use unified risk function
-    const { score, pDefault, rateRisk, dtiRisk, delinqRisk, gradeRisk, incomeBonus } = calculateRisk(rate, dti, delinq, grade, income);
+    // Risk math
+    const rateRisk    = Math.min(40, (rate-5)/25*40);
+    const dtiRisk     = Math.min(30, dti/60*30);
+    const delinqRisk  = delinq * 15;
+    const gradeRisk   = (grade-1) * 8;
+    const incomeBonus = Math.min(15, (income/100000)*15);
+    const rawRisk     = rateRisk + dtiRisk + delinqRisk + gradeRisk - incomeBonus;
+    const pDefault    = Math.min(0.98, Math.max(0.01, rawRisk/100));
+    const score       = Math.round(1000*(1-pDefault));
 
     // Update this applicant in portfolio slot 0
-    portfolioDatabase[0] = { rate, dti, delinq, grade, income, score, pDefault };
+    portfolioDatabase[0] = { rate, dti, delinq, grade, income, score };
 
-    // ── GAUGE MAPPING FIX ──
-    // Properly map the visual indicator position against the non-linear 0-500-650-800-1000 spans
-    let visualPercent = 0;
-    if (score <= 500) {
-        visualPercent = (score / 500) * 25;
-    } else if (score <= 650) {
-        visualPercent = 25 + ((score - 500) / 150) * 25;
-    } else if (score <= 800) {
-        visualPercent = 50 + ((score - 650) / 150) * 25;
-    } else {
-        visualPercent = 75 + ((score - 800) / 200) * 25;
-    }
-    document.getElementById('gauge-marker').style.left = Math.min(98, Math.max(1, visualPercent)) + '%';
+    // Gauge
+    document.getElementById('gauge-marker').style.left = Math.min(97, Math.max(1, score/10)) + '%';
 
     // Score result
     let bg, color, decision;
@@ -760,14 +810,13 @@ html_code = """
     else if (score >= 650) { bg='#fef3c7'; color='#92400e'; decision='APPROVE WITH CONDITIONS'; }
     else if (score >= 500) { bg='#ffedd5'; color='#c2410c'; decision='MANUAL REVIEW'; }
     else                   { bg='#fee2e2'; color='#b91c1c'; decision='DECLINE'; }
-    
     document.getElementById('result-box').style.background      = bg;
     document.getElementById('result-score').style.color         = color;
     document.getElementById('result-score').textContent         = score;
     document.getElementById('result-decision').style.color      = color;
     document.getElementById('result-decision').textContent      = decision;
     document.getElementById('result-prob').style.color          = color;
-    document.getElementById('result-prob').textContent          = 'P(Default): ' + (pDefault*100).toFixed(2) + '%';
+    document.getElementById('result-prob').textContent          = 'P(Default): ' + (pDefault*100).toFixed(1) + '%';
 
     // Risk flags
     const items = [];
