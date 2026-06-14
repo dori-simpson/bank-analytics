@@ -1,3 +1,4 @@
+
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -408,7 +409,6 @@ html_code = """
 <body>
 <div class="shell">
 
-  <!-- Header -->
   <div class="header">
     <div class="header-icon"><i class="ti ti-building-bank"></i></div>
     <div>
@@ -417,7 +417,6 @@ html_code = """
     </div>
   </div>
 
-  <!-- Metric Strip -->
   <div class="metric-strip">
     <div class="metric-card">
       <div class="metric-val" id="low-count-val">—</div>
@@ -441,7 +440,6 @@ html_code = """
     </div>
   </div>
 
-  <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" onclick="switchTab('score')">
       <i class="ti ti-search"></i> Score
@@ -454,11 +452,9 @@ html_code = """
     </button>
   </div>
 
-  <!-- ══ SCORE TAB ══ -->
   <div id="panel-score" class="panel active">
     <div class="two-col">
 
-      <!-- Left: Controls + Result -->
       <div>
         <div class="card">
           <div class="card-title"><i class="ti ti-sliders"></i> Applicant Parameters</div>
@@ -508,7 +504,6 @@ html_code = """
             </div>
           </div>
 
-          <!-- Gauge -->
           <div class="gauge-wrap">
             <div class="gauge-bar">
               <div class="gauge-marker" id="gauge-marker" style="left:75%"></div>
@@ -522,7 +517,6 @@ html_code = """
             </div>
           </div>
 
-          <!-- Score Box -->
           <div class="result-box" id="result-box">
             <div class="result-score"    id="result-score">—</div>
             <div class="result-decision" id="result-decision">—</div>
@@ -531,7 +525,6 @@ html_code = """
         </div>
       </div>
 
-      <!-- Right: Flags + Bar Chart -->
       <div>
         <div class="card">
           <div class="card-title"><i class="ti ti-flag"></i> Risk Factor Analysis</div>
@@ -548,7 +541,6 @@ html_code = """
     </div>
   </div>
 
-  <!-- ══ PORTFOLIO TAB ══ -->
   <div id="panel-portfolio" class="panel">
     <div class="two-col">
       <div class="card">
@@ -599,7 +591,6 @@ html_code = """
     </div>
   </div>
 
-  <!-- ══ MODELS TAB ══ -->
   <div id="panel-models" class="panel">
     <div class="two-col">
       <div class="card">
@@ -631,15 +622,13 @@ html_code = """
         <div class="kv-row"><span class="kv-key">Total defaults</span>    <span class="kv-val">178 loans</span></div>
         <div class="kv-row"><span class="kv-key">Primary metric</span>    <span class="kv-val">ROC-AUC</span></div>
         <div class="kv-row"><span class="kv-key">Imbalance handling</span><span class="kv-val">Class weight balanced</span></div>
-        <div class="kv-row"><span class="kv-key">Explainability</span>    <span class="kv-val">SHAP TreeExplainer</span></div>
+        <div class="kv-row"><span class="kv-key">Explainability</span>    <span class="kv-val">SHAP LinearExplainer</span></div>
         <button class="cta-btn">Improve Model AUC ↗</button>
       </div>
     </div>
   </div>
 
-</div><!-- /shell -->
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</div><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
   // ── Seeded RNG so portfolio is stable on every load ──
   function seededRandom(seed) {
@@ -652,12 +641,38 @@ html_code = """
     };
   }
   const rng = seededRandom(42);
+  
+  // ── Unified Risk Engine (Fixes Data Leakage Issue) ──
+  function calculateRisk(rate, dti, delinq, grade, income) {
+      const rateRisk    = Math.min(40, (rate-5)/25*40);
+      const dtiRisk     = Math.min(30, dti/60*30);
+      const delinqRisk  = delinq * 20;
+      const gradeRisk   = (grade-1) * 15;
+      const incomeBonus = Math.min(20, (income/100000)*20);
+
+      // Calculates 0-1000 scale appropriately
+      let rawScore = 1000 - (rateRisk*2.5 + dtiRisk*3.5 + delinqRisk*5 + gradeRisk*4) + (incomeBonus*2);
+      let score = Math.max(0, Math.min(1000, Math.round(rawScore)));
+
+      // Maps score to an exponential curve to yield a realistic P(Default)
+      let pDefault = Math.min(0.98, Math.max(0.001, Math.exp(-score / 120)));
+
+      return { score, pDefault, rateRisk, dtiRisk, delinqRisk, gradeRisk, incomeBonus };
+  }
+
+  // ── Generates Portfolio ──
   const portfolioDatabase = [];
   for (let i = 0; i < 2000; i++) {
-    const r = 5 + rng()*25, d = rng()*60, q = rng()>0.8?Math.floor(rng()*3):0,
-          g = Math.floor(1+rng()*5), inc = 30000+rng()*120000;
-    const risk = Math.min(40,(r-5)/25*40)+Math.min(30,d/60*30)+(q*15)+((g-1)*8)-Math.min(15,(inc/100000)*15);
-    portfolioDatabase.push({ rate:r, dti:d, delinq:q, grade:g, income:inc, score:Math.round(1000*(1-Math.min(0.98,Math.max(0.01,risk/100)))) });
+    // Generates a prime-skewed healthy portfolio simulating a 1.78% actual default environment
+    const isPrime = rng() > 0.25; 
+    const r = isPrime ? (5 + rng()*6) : (11 + rng()*15);
+    const d = isPrime ? (rng()*20) : (20 + rng()*40);
+    const q = rng() > 0.95 ? Math.floor(1 + rng()*2) : 0; 
+    const g = isPrime ? (rng() > 0.4 ? 1 : 2) : Math.floor(3 + rng()*3);
+    const inc = isPrime ? (55000 + rng()*90000) : (35000 + rng()*45000);
+
+    const { score, pDefault } = calculateRisk(r, d, q, g, inc);
+    portfolioDatabase.push({ rate:r, dti:d, delinq:q, grade:g, income:inc, score, pDefault });
   }
 
   const GRADE_LABELS = ["","A — Prime","B — Near prime","C — Subprime","D — Elevated","E — High risk"];
@@ -719,21 +734,25 @@ html_code = """
     document.getElementById('dti-out').textContent    = dti + '%';
     document.getElementById('delinq-out').textContent = delinq;
 
-    // Risk math
-    const rateRisk    = Math.min(40, (rate-5)/25*40);
-    const dtiRisk     = Math.min(30, dti/60*30);
-    const delinqRisk  = delinq * 15;
-    const gradeRisk   = (grade-1) * 8;
-    const incomeBonus = Math.min(15, (income/100000)*15);
-    const rawRisk     = rateRisk + dtiRisk + delinqRisk + gradeRisk - incomeBonus;
-    const pDefault    = Math.min(0.98, Math.max(0.01, rawRisk/100));
-    const score       = Math.round(1000*(1-pDefault));
+    // Use unified risk function
+    const { score, pDefault, rateRisk, dtiRisk, delinqRisk, gradeRisk, incomeBonus } = calculateRisk(rate, dti, delinq, grade, income);
 
     // Update this applicant in portfolio slot 0
-    portfolioDatabase[0] = { rate, dti, delinq, grade, income, score };
+    portfolioDatabase[0] = { rate, dti, delinq, grade, income, score, pDefault };
 
-    // Gauge
-    document.getElementById('gauge-marker').style.left = Math.min(97, Math.max(1, score/10)) + '%';
+    // ── GAUGE MAPPING FIX ──
+    // Properly map the visual indicator position against the non-linear 0-500-650-800-1000 spans
+    let visualPercent = 0;
+    if (score <= 500) {
+        visualPercent = (score / 500) * 25;
+    } else if (score <= 650) {
+        visualPercent = 25 + ((score - 500) / 150) * 25;
+    } else if (score <= 800) {
+        visualPercent = 50 + ((score - 650) / 150) * 25;
+    } else {
+        visualPercent = 75 + ((score - 800) / 200) * 25;
+    }
+    document.getElementById('gauge-marker').style.left = Math.min(98, Math.max(1, visualPercent)) + '%';
 
     // Score result
     let bg, color, decision;
@@ -741,13 +760,14 @@ html_code = """
     else if (score >= 650) { bg='#fef3c7'; color='#92400e'; decision='APPROVE WITH CONDITIONS'; }
     else if (score >= 500) { bg='#ffedd5'; color='#c2410c'; decision='MANUAL REVIEW'; }
     else                   { bg='#fee2e2'; color='#b91c1c'; decision='DECLINE'; }
+    
     document.getElementById('result-box').style.background      = bg;
     document.getElementById('result-score').style.color         = color;
     document.getElementById('result-score').textContent         = score;
     document.getElementById('result-decision').style.color      = color;
     document.getElementById('result-decision').textContent      = decision;
     document.getElementById('result-prob').style.color          = color;
-    document.getElementById('result-prob').textContent          = 'P(Default): ' + (pDefault*100).toFixed(1) + '%';
+    document.getElementById('result-prob').textContent          = 'P(Default): ' + (pDefault*100).toFixed(2) + '%';
 
     // Risk flags
     const items = [];
