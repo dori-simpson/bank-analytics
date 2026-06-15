@@ -19,7 +19,7 @@ import altair as alt
 @st.cache_resource
 def load_and_train():
     # Load your REAL CSV
-    df = pd.read_csv("1780790866747_loans_full_schema.csv")
+    df = pd.read_csv("data/1780790866747_loans_full_schema.csv")
     
     # Target Mapping: Filter out indeterminate states (e.g., 'Current')
     df = df[df['loan_status'].isin(['Fully Paid', 'Charged Off', 'Default'])]
