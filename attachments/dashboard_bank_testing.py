@@ -7,7 +7,6 @@ from datetime import datetime
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score, brier_score_loss, calibration_curve
 from sklearn.metrics import roc_auc_score, confusion_matrix
 from sklearn.calibration import calibration_curve
 
