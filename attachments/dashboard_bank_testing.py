@@ -3,13 +3,16 @@ import pandas as pd
 import numpy as np
 import sqlite3
 from datetime import datetime
+
+# You were missing this specific import
+from sklearn.pipeline import Pipeline 
+
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, brier_score_loss
 from sklearn.calibration import calibration_curve
 import altair as alt
-
 # ==============================
 # 1. PAGE CONFIG
 # ==============================
